@@ -64,21 +64,21 @@
 (define (get-current-date) (get-time "+%F"))
 
 ;MPD Music functions
-(define (get-mpd-now-playing)
+(define (get-mpd-now-playing artist-song-separator)
  (let* ([mpc-output (get-command-output-list "mpc")]
         [title-index
         (if (index-of mpc-output "[playing]")
          (index-of mpc-output "[playing]")
          (index-of mpc-output "[paused]"))]
         [playstring-list (take mpc-output title-index)])
-  (string-join playstring-list)))
+  (string-join (list-set playstring-list (index-of mpc-output "-") artist-song-separator))))
 
 ;Statusline render
 (define (statusline-render inet-device date-format charging-icon inet-icon music-icon separator)
  (string-append
   "[" (user-at-host-string) "]" separator
   inet-icon (get-ip-addr inet-device) separator
-  music-icon (get-mpd-now-playing) separator
+  music-icon (get-mpd-now-playing "»") separator
   (get-current-date) " " (get-time date-format)))
 
 ;Call xsetroot
