@@ -1,11 +1,12 @@
 #lang racket/base
 
 #| Goals:
-1. Time, duh.
-2. Battery charging status & percent
-3. Music
-4. User@Hostname
-5. Wifi status
+1. Time, duh. #DONE. AND DATE.
+2. Battery charging status & percent #DONE
+3. Music #DONE
+4. User@Hostname #DONE
+5. Wifi status #DONE
+6. CPU usage
 |#
 
 (require racket/system)
@@ -33,12 +34,14 @@
  (let ([command-path (find-executable-path "ip")])
   (if (not command-path) (error "Error in (get-ip-out device): ip command not found")
    (string-split (with-output-to-string (λ () (system* command-path "addr" "show" device)))))))
+
 (define (get-ip-addr device)
  (let* ([unparsed-ip-out (get-ip-out-list device)]
         [filtered-ip-out (member "inet" unparsed-ip-out)])
   (if (not filtered-ip-out) "Disconnected"
-  (string-trim (second filtered-ip-out) "/24"))))
+   (string-trim (second filtered-ip-out) "/24"))))
 
+;String handling
 (define (strip-commas str) (string-trim str ","))
 (define (strip-newline str) (string-trim str "\n"))
 
@@ -58,12 +61,25 @@
  (let ([command-path (find-executable-path "date")])
   (if (not command-path) (error "Error in (get-time): date command not found")
    (strip-newline (with-output-to-string (λ () (system* command-path date-format)))))))
+(define (get-current-date) (get-time "+%F"))
+
+;MPD Music functions
+(define (get-mpd-now-playing)
+ (let* ([mpc-output (get-command-output-list "mpc")]
+        [title-index
+        (if (index-of mpc-output "[playing]")
+         (index-of mpc-output "[playing]")
+         (index-of mpc-output "[paused]"))]
+        [playstring-list (take mpc-output title-index)])
+  (string-join playstring-list)))
 
 ;Statusline render
-(define (statusline-render wifi-device date-format charging-icon separator)
- (string-append "[" (user-at-host-string) "]" " " (get-ip-addr wifi-device) separator
-                (compose-battery-state charging-icon) separator
-                (get-time date-format)))
+(define (statusline-render inet-device date-format charging-icon inet-icon music-icon separator)
+ (string-append
+  "[" (user-at-host-string) "]" separator
+  inet-icon (get-ip-addr inet-device) separator
+  music-icon (get-mpd-now-playing) separator
+  (get-current-date) " " (get-time date-format)))
 
 ;Call xsetroot
 (define (xsetroot status-string)
@@ -72,12 +88,9 @@
    (system* command-path "-name" status-string))))
 
 (define (main sleep-length)
- (xsetroot (statusline-render "wlp58s0" "+%R" "\uF0E7 " " | "))
+ (xsetroot (statusline-render "enp0s31f6" "+%R" "\uE1A3 " "\uE1BA " "\uE405 " " | "))
  (sleep sleep-length)
  (main sleep-length)
  )
 
 (main 5)
-;(displayln (statusline-render "wlp58s0" "+%R" "\uF0E7 " " | "))
-;Music functions
-;(define (get-mpd-state) (get-command-output-string "mpc"))
