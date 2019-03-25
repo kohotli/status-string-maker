@@ -7,6 +7,7 @@
 4. User@Hostname #DONE
 5. Wifi status #DONE
 6. CPU usage
+7. Command line arguments.
 |#
 
 (require racket/system)
@@ -73,24 +74,31 @@
         [playstring-list (take mpc-output title-index)])
   (string-join (list-set playstring-list (index-of mpc-output "-") artist-song-separator))))
 
-;Statusline render
-(define (statusline-render inet-device date-format charging-icon inet-icon music-icon separator)
- (string-append
-  "[" (user-at-host-string) "]" separator
-  inet-icon (get-ip-addr inet-device) separator
-  music-icon (get-mpd-now-playing "»") separator
-  (get-current-date) " " (get-time date-format)))
-
 ;Call xsetroot
 (define (xsetroot status-string)
  (let ([command-path (find-executable-path "xsetroot")])
   (if (not command-path) (error "Error in (xsetroot): xsetroot command not found")
    (system* command-path "-name" status-string))))
 
+;Configure icons, separator, date format, and internet devices here.
 (define (main sleep-length)
- (xsetroot (statusline-render "enp0s31f6" "+%R" "\uE1A3 " "\uE1BA " "\uE405 " " | "))
+ (xsetroot (statusline-render
+            "enp0s31f6" ;Internet device
+            "+%R"       ;Date format
+            "\uE1A3 "   ;Battery charging icon
+            "\uE1BA "   ;Icon for IP addr display
+            "\uE405 "   ;Icon for mpd music display
+            " | "))     ;Separator. The spaces are highly recommended to keep.
  (sleep sleep-length)
- (main sleep-length)
- )
+ (main sleep-length))
+
+;Statusline render. Edit this to configure the output for your setup. To remove something just comment that line out.
+(define (statusline-render inet-device date-format charging-icon inet-icon music-icon separator)
+ (string-append
+  music-icon (get-mpd-now-playing "»") separator
+  ;(compose-battery-state charging-icon) separator
+  inet-icon (get-ip-addr inet-device) separator
+  "[" (user-at-host-string) "]" separator
+  (get-current-date) " " (get-time date-format)))
 
 (main 5)
