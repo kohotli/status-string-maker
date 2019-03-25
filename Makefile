@@ -4,7 +4,6 @@ ifeq ($(PREFIX),)
 	PREFIX := /usr/local
 endif
 BINDIR = $(PREFIX)/bin
-
 TARGET = status-string-maker
 
 generate:
