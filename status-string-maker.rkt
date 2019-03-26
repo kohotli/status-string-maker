@@ -19,7 +19,14 @@
 (define (get-command-output-string command)
   (let ([command-path (find-executable-path command)])
     (if (not command-path) (error "Error (get-command-output-string): Command not found")
-    (strip-newline (with-output-to-string (λ () (system* (find-executable-path command))))))))
+    (strip-newline (with-output-to-string (λ () (system* command-path)))))))
+
+;Command output parsing, accepting arguments in a list
+(define (get-command-output-with-args command args)
+ (let ([command-path (find-executable-path command)])
+  (if (not command-path) (error "Error (get-command-output-with-args-string): Command not found")
+   (string-split (strip-newline (with-output-to-string
+                                 (λ () (apply system* (cons command-path args)))))))))
 
 (define (get-command-output-list command)
  (string-split (get-command-output-string command)))
@@ -65,8 +72,8 @@
 (define (get-current-date) (get-time "+%F"))
 
 ;MPD Music functions
-(define (get-mpd-now-playing artist-song-separator)
- (let* ([mpc-output (get-command-output-list "mpc")]
+(define (get-mpd-now-playing artist-song-separator host port)
+ (let* ([mpc-output (get-command-output-with-args "mpc" (list "-h" host "-p" port))]
         [title-index
         (if (index-of mpc-output "[playing]")
          (index-of mpc-output "[playing]")
@@ -83,20 +90,22 @@
 ;Configure icons, separator, date format, and internet devices here.
 (define (main sleep-length)
  (xsetroot (statusline-render
-            "enp0s31f6" ;Internet device
-            "+%R"       ;Date format
-            "\uE1A3 "   ;Battery charging icon
-            "\uE1BA "   ;Icon for IP addr display
-            "\uE405 "   ;Icon for mpd music display
-            " | "))     ;Separator. The spaces are highly recommended to keep.
+            "enp0s31f6"   ;Internet device
+            "+%R"         ;Date format
+            "\uE1A3 "     ;Battery charging icon
+            "\uE1BA "     ;Icon for IP addr display
+            "\uE405 "     ;Icon for mpd music display
+            " | "         ;Separator. The spaces are highly recommended to keep.
+            "192.168.1.4" ;MPD host IP
+            "6600"))      ;MPD host port
  (sleep sleep-length)
  (main sleep-length))
 
 ;Statusline render. Edit this to configure the output for your setup. To remove something just comment that line out.
-(define (statusline-render inet-device date-format charging-icon inet-icon music-icon separator)
+(define (statusline-render inet-device date-format charging-icon inet-icon music-icon separator mpd-host mpd-port)
  (string-append
-  music-icon (get-mpd-now-playing "»") separator
-  ;(compose-battery-state charging-icon) separator
+  music-icon (get-mpd-now-playing "»" mpd-host mpd-port) separator
+  (compose-battery-state charging-icon) separator
   inet-icon (get-ip-addr inet-device) separator
   "[" (user-at-host-string) "]" separator
   (get-current-date) " " (get-time date-format)))
