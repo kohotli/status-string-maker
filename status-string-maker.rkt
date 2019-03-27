@@ -96,13 +96,21 @@
             "\uE1BA "     ;Icon for IP addr display
             "\uE405 "     ;Icon for mpd music display
             " | "         ;Separator. The spaces are highly recommended to keep.
-            "192.168.1.4" ;MPD host IP
-            "6600"))      ;MPD host port
+            ;"192.168.1.4" ;MPD host IP. Defaults to 127.0.0.1
+            ;"6600"))      ;MPD host port. Defaults to 6600
  (sleep sleep-length)
  (main sleep-length))
 
 ;Statusline render. Edit this to configure the output for your setup. To remove something just comment that line out.
-(define (statusline-render inet-device date-format charging-icon inet-icon music-icon separator mpd-host mpd-port)
+(define (statusline-render
+         inet-device
+         date-format
+         charging-icon
+         inet-icon
+         music-icon
+         separator
+         [mpd-host "127.0.0.1"]
+         [mpd-port "6600"])
  (string-append
   music-icon (get-mpd-now-playing "»" mpd-host mpd-port) separator
   (compose-battery-state charging-icon) separator
