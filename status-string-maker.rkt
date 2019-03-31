@@ -76,14 +76,13 @@
 
 (define (get-mpd-now-playing artist-song-separator host port)
   (let ([mpc-output (get-command-output-with-args "mpc" (list "-h" host "-p" port))])
-    (if (string-contains? (string-join mpc-output) "error")
+    (if (empty? mpc-output) "MPD Disconnected"
         (let* ([title-index
                  (if (index-of mpc-output "[playing]")
                      (index-of mpc-output "[playing]")
                      (index-of mpc-output "[paused]"))]
                [playstring-list (take mpc-output title-index)])
-          (string-join playstring-list))
-        "MPD Disconnected")))
+          (string-join playstring-list)))))
 
 ;Call xsetroot
 (define (xsetroot status-string)
@@ -102,8 +101,8 @@
               " | "         ;Separator. The spaces are highly recommended to keep.
               "192.168.1.4" ;MPD host IP. Defaults to 127.0.0.1
               "6600"))      ;MPD host port. Defaults to 6600
-  (sleep sleep-length)
-  (main sleep-length))
+              (sleep sleep-length)
+              (main sleep-length))
 
 ;Statusline render. Edit this to configure the output for your setup. To remove something just comment that line out.
 (define (statusline-render
