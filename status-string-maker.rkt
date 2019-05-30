@@ -86,7 +86,10 @@
 								 (if (index-of mpc-output "[playing]")
 										 (index-of mpc-output "[playing]")
 										 (index-of mpc-output "[paused]"))]
-							 [playstring-list (take mpc-output title-index)])
+							 ;[playstring-list (take mpc-output title-index)])
+							 [playstring-list (if title-index
+								 (take mpc-output title-index)
+								 (list "MPD Not Playing"))])
 					(string-join playstring-list)))))
 
 ;Form mpc format string
@@ -103,11 +106,11 @@
 	(xsetroot (statusline-render
 							"enp0s31f6"		;Internet device
 							"+%R"					;Date format
-							"\uE1A3 "			;Battery charging icon
-							"\uE1BA "			;Icon for IP addr display
-							"\uE405 "			;Icon for mpd music display
+							"\uF583 "			;Battery charging icon
+							"\uF1EB "			;Icon for IP addr display
+							"\uF7CA "			;Icon for mpd music display
 							" | "					;Separator. The spaces are highly recommended to keep.
-							"192.168.1.4" ;MPD host IP. Defaults to 127.0.0.1
+							"192.168.1.3" ;MPD host IP. Defaults to 127.0.0.1
 							"6600"))			;MPD host port. Defaults to 6600
 							(sleep sleep-length)
 							(main sleep-length))
