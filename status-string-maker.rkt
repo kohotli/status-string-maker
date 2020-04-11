@@ -102,22 +102,22 @@
 				(system* command-path "-name" status-string))))
 
 ;Configure icons, separator, date format, and internet devices here.
-(define (main sleep-length)
+(define (main sleep-length ip-addr)
 	(xsetroot (statusline-render
-							"enp0s31f6"		;Internet device
+							ip-addr				;Internet device
 							"+%R"					;Date format
 							"\uF583 "			;Battery charging icon
 							"\uF1EB "			;Icon for IP addr display
 							"\uF7CA "			;Icon for mpd music display
 							" | "					;Separator. The spaces are highly recommended to keep.
-							"192.168.1.3" ;MPD host IP. Defaults to 127.0.0.1
-							"6600"))			;MPD host port. Defaults to 6600
+							ip-addr				;MPD host IP. Defaults to 127.0.0.1
+							"6600"))				;MPD host port. Defaults to 6600
 							(sleep sleep-length)
-							(main sleep-length))
+							(main sleep-length ip-addr))
 
 ;Statusline render. Edit this to configure the output for your setup. To remove something just comment that line out.
 (define (statusline-render
-					inet-device
+					ip-addr
 					date-format
 					charging-icon
 					inet-icon
@@ -128,8 +128,8 @@
 	(string-append
 		music-icon (get-mpd-now-playing "»" mpd-host mpd-port) separator
 		;(compose-battery-state charging-icon) separator
-		inet-icon (get-ip-addr inet-device) separator
+		inet-icon ip-addr separator
 		"[" (user-at-host-string) "]" separator
 		(get-current-date) " " (get-time date-format)))
 
-(main 1)
+(main 1 (get-ip-addr "enp0s31f6"))
